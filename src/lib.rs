@@ -3,6 +3,10 @@ mod handle_stack_command;
 mod persistence;
 mod types;
 
+/*
+    stack <stack> => checkout stack
+    stack --new <stack> => create and checkout stack
+*/
 pub fn handle_stack_command(options: &[String]) -> Result<(), &'static str> {
     let stack_name = match handle_stack_command::extract_stack_name(options) {
         Some(name) => name,
@@ -36,12 +40,12 @@ pub fn handle_branch_command(options: &[String]) -> Result<(), &'static str> {
         Some(name) => name,
         None => return Err("Missing branch name"),
     };
-    let new_option = match handle_branch_command::extract_new_option(options) {
+    let create_option = match handle_branch_command::extract_create_option(options) {
         Some(_) => true,
         None => false,
     };
 
-    if new_option {
+    if create_option {
         match handle_branch_command::create_branch(&branch_name) {
             Ok(_) => {}
             Err(e) => return Err(e),

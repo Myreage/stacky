@@ -6,8 +6,8 @@ pub fn extract_branch_name(options: &[String]) -> Option<&String> {
     options.iter().find(|&o| !o.starts_with("--"))
 }
 
-pub fn extract_new_option(options: &[String]) -> Option<&String> {
-    options.iter().find(|&o| o == "--new")
+pub fn extract_create_option(options: &[String]) -> Option<&String> {
+    options.iter().find(|&o| o == "--create")
 }
 
 pub fn create_branch(branch_name: &String) -> Result<(), &'static str> {
