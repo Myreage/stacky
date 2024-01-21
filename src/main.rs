@@ -26,7 +26,7 @@ fn main() {
                branch --new <branch> => create and checkout branch belonging to current stack
 
             */
-            Ok(())
+            stacky::handle_branch_command(options)
         }
         "sync" => {
             /*

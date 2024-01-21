@@ -1,14 +1,22 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
-struct Branch {
-    name: String,
+pub struct Branch {
+    pub name: String,
+}
+
+impl Branch {
+    pub fn new(name: &String) -> Branch {
+        Branch {
+            name: name.to_string(),
+        }
+    }
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Stack {
     pub name: String,
-    branches: Vec<Branch>,
+    pub branches: Vec<Branch>,
 }
 
 #[derive(Debug, Serialize, Deserialize, Default)]
@@ -21,7 +29,7 @@ impl Stack {
     pub fn new(name: &String) -> Stack {
         Stack {
             branches: vec![],
-            name: name.clone(),
+            name: name.to_string(),
         }
     }
 }
