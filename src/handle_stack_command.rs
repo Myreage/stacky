@@ -1,5 +1,25 @@
 use crate::{persistence, types};
 
+pub fn print_current_stack() -> Result<(), &'static str> {
+    let file_data = match persistence::read_from_file::<types::FileData>("save.json") {
+        Ok(loaded_stacks) => loaded_stacks,
+        Err(_) => return Err("Error when reading file"),
+    };
+
+    let current_stack = match file_data
+        .stacks
+        .iter()
+        .find(|&s| s.name == file_data.current_stack)
+    {
+        Some(stack) => stack,
+        None => return Err("Not currently on a stack"),
+    };
+
+    println!("{}", current_stack);
+
+    Ok(())
+}
+
 pub fn create_stack(stack_name: &String) -> Result<(), &'static str> {
     let mut file_data = match persistence::read_from_file::<types::FileData>("save.json") {
         Ok(loaded_stacks) => loaded_stacks,
