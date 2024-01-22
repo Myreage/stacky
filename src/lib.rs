@@ -161,8 +161,6 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
             Err(_) => return Err("Git rebase failed"),
         }
 
-        println!("Bigoudi");
-
         let mut git_push = Command::new("git");
         git_push
             .arg("push")
