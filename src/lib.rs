@@ -88,6 +88,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
                 io::stderr().write_all(&result.stderr).unwrap();
                 return Err("Git checkout failed");
             }
+            println!("Checked on main")
         }
         Err(_) => return Err("Git checkout failed"),
     }
@@ -102,6 +103,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
                 io::stderr().write_all(&result.stderr).unwrap();
                 return Err("Git pull main failed");
             }
+            println!("Pulled main")
         }
         Err(_) => return Err("Git pull main failed"),
     }
@@ -120,6 +122,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
                     io::stderr().write_all(&result.stderr).unwrap();
                     return Err("Git checkout failed");
                 }
+                println!("Checked on {}", &branch.name);
             }
             Err(_) => return Err("Git checkout failed"),
         }
@@ -139,6 +142,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
                     io::stderr().write_all(&result.stderr).unwrap();
                     return Err("Git rebase failed");
                 }
+                println!("Rebased {} on {}", &branch.name, rebase_branch);
             }
             Err(_) => return Err("Git rebase failed"),
         }
@@ -159,6 +163,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
                     io::stderr().write_all(&result.stderr).unwrap();
                     return Err("Git push failed");
                 }
+                println!("Forced pushed {}", &branch.name);
             }
             Err(_) => return Err("Git push failed"),
         }
