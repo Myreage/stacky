@@ -127,19 +127,30 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
             Err(_) => return Err("Git checkout failed"),
         }
 
-        let mut git_pull = Command::new("git");
-        git_pull.arg("pull");
+        let ls_remote_command = Command::new("git")
+            .args(&["ls-remote", "--exit-code", "origin", &branch.name])
+            .output();
 
-        match git_pull.output() {
-            Ok(result) => {
-                if !result.status.success() {
-                    dbg!(&result);
-                    io::stdout().write_all(&result.stdout).unwrap();
-                    io::stderr().write_all(&result.stderr).unwrap();
-                    return Err("Git pull failed");
+        let branch_exists = match ls_remote_command {
+            Ok(output) => output.status.success(),
+            Err(_) => false,
+        };
+
+        if branch_exists {
+            let mut git_pull = Command::new("git");
+            git_pull.arg("pull");
+
+            match git_pull.output() {
+                Ok(result) => {
+                    if !result.status.success() {
+                        dbg!(&result);
+                        io::stdout().write_all(&result.stdout).unwrap();
+                        io::stderr().write_all(&result.stderr).unwrap();
+                        return Err("Git pull failed");
+                    }
                 }
+                Err(_) => return Err("Git checkout failed"),
             }
-            Err(_) => return Err("Git checkout failed"),
         }
 
         let rebase_branch = match index {
