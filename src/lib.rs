@@ -183,7 +183,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         }
     }
 
-    println!("c'est super haha");
+    println!("c'est super hahahéhé");
 
     Ok(())
 }
