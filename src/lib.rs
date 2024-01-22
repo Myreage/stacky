@@ -84,6 +84,8 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
     match git_checkout_main.output() {
         Ok(result) => {
             if !result.status.success() {
+                io::stdout().write_all(&result.stdout).unwrap();
+                io::stderr().write_all(&result.stderr).unwrap();
                 return Err("Git checkout failed");
             }
         }
@@ -96,6 +98,8 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
     match git_pull_main.output() {
         Ok(result) => {
             if !result.status.success() {
+                io::stdout().write_all(&result.stdout).unwrap();
+                io::stderr().write_all(&result.stderr).unwrap();
                 return Err("Git pull main failed");
             }
         }
@@ -110,6 +114,8 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         match git_checkout.output() {
             Ok(result) => {
                 if !result.status.success() {
+                    io::stdout().write_all(&result.stdout).unwrap();
+                    io::stderr().write_all(&result.stderr).unwrap();
                     return Err("Git checkout failed");
                 }
             }
@@ -141,6 +147,8 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         match git_push.output() {
             Ok(result) => {
                 if !result.status.success() {
+                    io::stdout().write_all(&result.stdout).unwrap();
+                    io::stderr().write_all(&result.stderr).unwrap();
                     return Err("Git push failed");
                 }
             }
