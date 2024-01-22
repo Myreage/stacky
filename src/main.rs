@@ -14,12 +14,7 @@ fn main() {
     let execution_result = match command.as_str() {
         "stack" => stacky::handle_stack_command(options),
         "branch" => stacky::handle_branch_command(options),
-        "sync" => {
-            /*
-                sync => push/pull stack branches and updates/creates PRs of each stacked branch
-            */
-            Ok(())
-        }
+        "sync" => stacky::handle_sync_command(),
         _ => Err("Unknown command"),
     };
 

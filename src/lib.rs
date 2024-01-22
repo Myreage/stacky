@@ -1,3 +1,8 @@
+use std::{
+    io::{self, Write},
+    process::Command,
+};
+
 mod handle_branch_command;
 mod handle_stack_command;
 mod persistence;
@@ -54,4 +59,133 @@ pub fn handle_branch_command(options: &[String]) -> Result<(), &'static str> {
         Ok(_) => Ok(()),
         Err(e) => Err(e),
     }
+}
+
+pub fn handle_sync_command() -> Result<(), &'static str> {
+    let file_data = match persistence::read_from_file::<types::FileData>("save.json") {
+        Ok(loaded_stacks) => loaded_stacks,
+        Err(_) => return Err("Error when reading file"),
+    };
+
+    let current_stack = file_data.current_stack;
+
+    let branches = &file_data
+        .stacks
+        .iter()
+        .find(|&s| s.name == current_stack)
+        .unwrap()
+        .branches;
+
+    // Pull main
+
+    let mut git_checkout_main = Command::new("git");
+    git_checkout_main.arg("checkout").arg("main");
+
+    match git_checkout_main.output() {
+        Ok(result) => {
+            if !result.status.success() {
+                io::stdout().write_all(&result.stdout).unwrap();
+                io::stderr().write_all(&result.stderr).unwrap();
+                return Err("Git checkout failed");
+            }
+        }
+        Err(_) => return Err("Git checkout failed"),
+    }
+
+    let mut git_pull_main = Command::new("git");
+    git_pull_main.arg("pull");
+
+    match git_pull_main.output() {
+        Ok(result) => {
+            if !result.status.success() {
+                io::stdout().write_all(&result.stdout).unwrap();
+                io::stderr().write_all(&result.stderr).unwrap();
+                return Err("Git pull main failed");
+            }
+        }
+        Err(_) => return Err("Git pull main failed"),
+    }
+
+    // Rebase and push all branches
+    for (index, branch) in branches.iter().enumerate() {
+        let mut git_checkout = Command::new("git");
+        git_checkout.arg("checkout").arg(&branch.name);
+
+        match git_checkout.output() {
+            Ok(result) => {
+                if !result.status.success() {
+                    io::stdout().write_all(&result.stdout).unwrap();
+                    io::stderr().write_all(&result.stderr).unwrap();
+                    return Err("Git checkout failed");
+                }
+            }
+            Err(_) => return Err("Git checkout failed"),
+        }
+
+        let ls_remote_command = Command::new("git")
+            .args(&["ls-remote", "--exit-code", "origin", &branch.name])
+            .output();
+
+        let branch_exists = match ls_remote_command {
+            Ok(output) => output.status.success(),
+            Err(_) => false,
+        };
+
+        if branch_exists {
+            let mut git_pull = Command::new("git");
+            git_pull.arg("pull");
+
+            match git_pull.output() {
+                Ok(result) => {
+                    if !result.status.success() {
+                        dbg!(&result);
+                        io::stdout().write_all(&result.stdout).unwrap();
+                        io::stderr().write_all(&result.stderr).unwrap();
+                        return Err("Git pull failed");
+                    }
+                }
+                Err(_) => return Err("Git checkout failed"),
+            }
+        }
+
+        let rebase_branch = match index {
+            0 => "main",
+            _ => &branches[index - 1].name,
+        };
+
+        let mut git_rebase = Command::new("git");
+        git_rebase.arg("rebase").arg(rebase_branch);
+
+        match git_rebase.output() {
+            Ok(result) => {
+                if !result.status.success() {
+                    io::stdout().write_all(&result.stdout).unwrap();
+                    io::stderr().write_all(&result.stderr).unwrap();
+                    return Err("Git rebase failed");
+                }
+            }
+            Err(_) => return Err("Git rebase failed"),
+        }
+
+        let mut git_push = Command::new("git");
+        git_push
+            .arg("push")
+            .arg("--force")
+            .arg("--set-upstream")
+            .arg("origin")
+            .arg(&branch.name);
+
+        match git_push.output() {
+            Ok(result) => {
+                if !result.status.success() {
+                    io::stdout().write_all(&result.stdout).unwrap();
+                    io::stderr().write_all(&result.stderr).unwrap();
+                    return Err("Git push failed");
+                }
+            }
+            Err(_) => return Err("Git push failed"),
+        }
+    }
+
+    Ok(())
 }
