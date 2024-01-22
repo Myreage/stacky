@@ -133,6 +133,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         match git_pull.output() {
             Ok(result) => {
                 if !result.status.success() {
+                    dbg!(&result);
                     io::stdout().write_all(&result.stdout).unwrap();
                     io::stderr().write_all(&result.stderr).unwrap();
                     return Err("Git pull failed");
