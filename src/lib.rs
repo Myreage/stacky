@@ -166,6 +166,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         let mut git_push = Command::new("git");
         git_push
             .arg("push")
+            .arg("--force")
             .arg("--set-upstream")
             .arg("origin")
             .arg(&branch.name);
