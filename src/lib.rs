@@ -127,6 +127,20 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
             Err(_) => return Err("Git checkout failed"),
         }
 
+        let mut git_pull = Command::new("git");
+        git_pull.arg("pull");
+
+        match git_pull.output() {
+            Ok(result) => {
+                if !result.status.success() {
+                    io::stdout().write_all(&result.stdout).unwrap();
+                    io::stderr().write_all(&result.stderr).unwrap();
+                    return Err("Git pull failed");
+                }
+            }
+            Err(_) => return Err("Git checkout failed"),
+        }
+
         let rebase_branch = match index {
             0 => "main",
             _ => &branches[index - 1].name,
