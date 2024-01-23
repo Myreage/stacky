@@ -92,6 +92,8 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         Err(_) => return Err("Git checkout failed"),
     }
 
+    // touktouk
+
     let mut git_pull_main = Command::new("git");
     git_pull_main.arg("pull");
 
