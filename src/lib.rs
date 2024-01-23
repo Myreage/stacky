@@ -6,7 +6,10 @@ use std::{
     str,
 };
 
-use reqwest::blocking::{Client, RequestBuilder};
+use reqwest::{
+    blocking::{Client, RequestBuilder},
+    Body,
+};
 
 mod handle_branch_command;
 mod handle_stack_command;
@@ -258,8 +261,6 @@ fn create_pull_request_request(
         .header("X-GitHub-Api-Version", "2022-11-28")
         .header("Authorization", format!("Bearer {}", access_token))
         .json(&body);
-
-    dbg!(&request_builder);
 
     request_builder
 }
