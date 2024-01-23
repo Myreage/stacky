@@ -251,6 +251,7 @@ fn create_pull_request_request(
         .header("Accept", "application/vnd.github+json")
         .header("X-GitHub-Api-Version", "2022-11-28")
         .header("Authorization", format!("Bearer {}", access_token))
+        .header("User-Agent", "stacky")
         .body("couille");
     //.json(&body);
 
