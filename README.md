@@ -55,6 +55,7 @@ You can inspect your current stack with
 stacky stack
 ```
 
+Bigoudi
 This will print something like
 
 ```bash
