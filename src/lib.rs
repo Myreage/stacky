@@ -126,6 +126,8 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
             Err(_) => return Err("Git checkout failed"),
         }
 
+        // taktak
+
         let ls_remote_command = Command::new("git")
             .args(&["ls-remote", "--exit-code", "origin", &branch.name])
             .output();
