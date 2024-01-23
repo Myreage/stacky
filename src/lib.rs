@@ -267,8 +267,16 @@ fn extract_repo_owner_and_name() -> Option<(String, String)> {
 
     dbg!(output_str);
 
-    // Extrait le propriétaire du dépôt et le nom du dépôt à partir de la sortie
-    extract_owner_and_name_from_url(output_str.to_string())
+    // Sépare l'URL en parties en utilisant le séparateur "\t" (tabulation)
+    let parts: Vec<&str> = output_str.split('\t').collect();
+
+    // Si l'URL est dans le format attendu, retourne le propriétaire et le nom du dépôt
+    if parts.len() >= 2 {
+        let url = parts[1].trim();
+        extract_owner_and_name_from_url(url.to_string())
+    } else {
+        None
+    }
 }
 
 fn extract_owner_and_name_from_url(url: String) -> Option<(String, String)> {
