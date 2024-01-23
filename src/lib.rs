@@ -242,6 +242,14 @@ fn create_pull_request_request(
 ) -> RequestBuilder {
     // Construire la requête HTTP POST pour créer une pull request
     let client = Client::new();
+
+    dbg!(&json!({
+        "title": "Titre de la pull request",
+        "body": "Description de la pull request",
+        "base": base,
+        "head": head,
+    }));
+
     let request_builder = client
         .post(&api_url)
         .header("Authorization", format!("Bearer {}", access_token))
