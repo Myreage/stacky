@@ -1,4 +1,5 @@
 use std::{
+    env,
     io::{self, Write},
     process::Command,
     str,
@@ -201,7 +202,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         // Remplacez ces valeurs par les informations de votre repository et votre token d'accès personnel
         let base_branch = rebase_branch;
         let head_branch = branch.name.as_str();
-        let access_token = "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";
+        let access_token = env::var("API_KEY").unwrap();
 
         // Construire l'URL de l'API GitHub pour créer une pull request
         let api_url = format!(
@@ -211,7 +212,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
 
         // Construire la requête HTTP
         let request_builder =
-            create_pull_request_request(api_url, access_token, base_branch, head_branch);
+            create_pull_request_request(api_url, &access_token, base_branch, head_branch);
 
         // Exécuter la requête
         match request_builder.send() {
