@@ -1,7 +1,11 @@
 use std::{
     io::{self, Write},
     process::Command,
+    str,
 };
+
+use reqwest::blocking::{Client, RequestBuilder};
+use serde_json::json;
 
 mod handle_branch_command;
 mod handle_stack_command;
@@ -185,7 +189,106 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
             }
             Err(_) => return Err("Git push failed"),
         }
+
+        // PULL REQUEST OPENING
+        // Extrait le propriétaire et le nom du dépôt à partir du dépôt Git
+        let (repo_owner, repo_name) = extract_repo_owner_and_name()
+            .expect("Impossible d'extraire les informations du dépôt Git.");
+
+        // Remplacez ces valeurs par les informations de votre repository et votre token d'accès personnel
+        let base_branch = rebase_branch;
+        let head_branch = branch.name.as_str();
+        let access_token = "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";
+
+        // Construire l'URL de l'API GitHub pour créer une pull request
+        let api_url = format!(
+            "https://api.github.com/repos/{}/{}/pulls",
+            repo_owner, repo_name
+        );
+
+        // Construire la requête HTTP
+        let request_builder =
+            create_pull_request_request(api_url, access_token, base_branch, head_branch);
+
+        // Exécuter la requête
+        match request_builder.send() {
+            Ok(response) => {
+                if response.status().is_success() {
+                    println!("Pull request créée avec succès!");
+                } else {
+                    println!(
+                        "Erreur lors de la création de la pull request: {:?}",
+                        response
+                    );
+                }
+            }
+            Err(e) => {
+                println!("Erreur lors de la requête HTTP: {:?}", e);
+            }
+        }
     }
 
     Ok(())
+}
+
+fn create_pull_request_request(
+    api_url: String,
+    access_token: &str,
+    base: &str,
+    head: &str,
+) -> RequestBuilder {
+    // Construire la requête HTTP POST pour créer une pull request
+    let client = Client::new();
+    let request_builder = client
+        .post(&api_url)
+        .header("Authorization", format!("Bearer {}", access_token))
+        .json(&json!({
+            "title": "Titre de la pull request",
+            "body": "Description de la pull request",
+            "base": base,
+            "head": head,
+        }));
+
+    request_builder
+}
+
+fn extract_repo_owner_and_name() -> Option<(String, String)> {
+    // Exécute la commande `git remote -v` et capture la sortie
+    let output = Command::new("git")
+        .arg("remote")
+        .arg("-v")
+        .output()
+        .expect("La commande git a échoué");
+
+    // Convertit la sortie du processus en une chaîne de caractères
+    let output_str = str::from_utf8(&output.stdout).ok()?;
+
+    // Extrait le propriétaire du dépôt et le nom du dépôt à partir de la sortie
+    extract_owner_and_name_from_url(output_str.to_string())
+}
+
+fn extract_owner_and_name_from_url(url: String) -> Option<(String, String)> {
+    // Supprime le préfixe "git@" si présent
+    let cleaned_url = if url.starts_with("git@") {
+        &url[4..]
+    } else {
+        &url
+    };
+
+    // Supprime le suffixe ".git" si présent
+    let cleaned_url = if cleaned_url.ends_with(".git") {
+        &cleaned_url[..cleaned_url.len() - 4]
+    } else {
+        cleaned_url
+    };
+
+    // Divise l'URL en parties en utilisant le séparateur ":"
+    let parts: Vec<&str> = cleaned_url.split(':').collect();
+
+    // Si l'URL est dans le format attendu, retourne le propriétaire et le nom du dépôt
+    if parts.len() == 2 {
+        Some((parts[0].to_string(), parts[1].to_string()))
+    } else {
+        None
+    }
 }
