@@ -201,7 +201,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         // Remplacez ces valeurs par les informations de votre repository et votre token d'accès personnel
         let base_branch = rebase_branch;
         let head_branch = branch.name.as_str();
-        let access_token = "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";
+        let access_token = "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";
 
         // Construire l'URL de l'API GitHub pour créer une pull request
         let api_url = format!(
