@@ -295,7 +295,9 @@ fn extract_owner_and_name_from_url(url: String) -> Option<(String, String)> {
     if parts.len() == 2 {
         Some((
             parts[0].to_string(),
-            parts[1].trim_end_matches(".git").to_string(),
+            parts[1]
+                .trim_end_matches(".git (fetch)\norigin")
+                .to_string(),
         ))
     } else {
         None
