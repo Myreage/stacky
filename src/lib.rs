@@ -243,17 +243,11 @@ fn create_pull_request_request(
     // Construire la requête HTTP POST pour créer une pull request
     let client = Client::new();
 
-    dbg!(format!("Bearer {}", access_token));
-
-    dbg!(&api_url);
-
     let mut body = HashMap::new();
     body.insert("title", "Titre de la Pull Request");
     body.insert("body", "Description de la Pull Request");
     body.insert("base", base);
     body.insert("head", head);
-
-    dbg!(&body);
 
     let request_builder = client
         .post(&api_url)
@@ -261,6 +255,8 @@ fn create_pull_request_request(
         .header("X-GitHub-Api-Version", "2022-11-28")
         .header("Authorization", format!("Bearer {}", access_token))
         .json(&body);
+
+    dbg!(&request_builder);
 
     request_builder
 }
