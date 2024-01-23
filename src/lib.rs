@@ -257,6 +257,8 @@ fn create_pull_request_request(
         .header("Authorization", format!("Bearer {}", access_token))
         .json(&body);
 
+    dbg!(&request_builder);
+
     request_builder
 }
 
