@@ -218,7 +218,7 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
                 } else {
                     println!(
                         "Erreur lors de la création de la pull request: {:?}",
-                        response
+                        response.text()
                     );
                 }
             }
