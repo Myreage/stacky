@@ -108,6 +108,8 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         Err(_) => return Err("Git pull main failed"),
     }
 
+    // tiktik
+
     // Rebase and push all branches
     for (index, branch) in branches.iter().enumerate() {
         let mut git_checkout = Command::new("git");
