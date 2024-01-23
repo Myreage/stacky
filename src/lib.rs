@@ -260,8 +260,12 @@ fn extract_repo_owner_and_name() -> Option<(String, String)> {
         .output()
         .expect("La commande git a échoué");
 
+    dbg!(&output);
+
     // Convertit la sortie du processus en une chaîne de caractères
     let output_str = str::from_utf8(&output.stdout).ok()?;
+
+    dbg!(output_str);
 
     // Extrait le propriétaire du dépôt et le nom du dépôt à partir de la sortie
     extract_owner_and_name_from_url(output_str.to_string())
@@ -275,6 +279,8 @@ fn extract_owner_and_name_from_url(url: String) -> Option<(String, String)> {
         &url
     };
 
+    dbg!(cleaned_url);
+
     // Supprime le suffixe ".git" si présent
     let cleaned_url = if cleaned_url.ends_with(".git") {
         &cleaned_url[..cleaned_url.len() - 4]
@@ -282,8 +288,12 @@ fn extract_owner_and_name_from_url(url: String) -> Option<(String, String)> {
         cleaned_url
     };
 
+    dbg!(cleaned_url);
+
     // Divise l'URL en parties en utilisant le séparateur ":"
     let parts: Vec<&str> = cleaned_url.split(':').collect();
+
+    dbg!(&parts);
 
     // Si l'URL est dans le format attendu, retourne le propriétaire et le nom du dépôt
     if parts.len() == 2 {
