@@ -143,7 +143,6 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
             match git_pull.output() {
                 Ok(result) => {
                     if !result.status.success() {
-                        dbg!(&result);
                         io::stdout().write_all(&result.stdout).unwrap();
                         io::stderr().write_all(&result.stderr).unwrap();
                         return Err("Git pull failed");
@@ -196,15 +195,10 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         let (repo_owner, repo_name) = extract_repo_owner_and_name()
             .expect("Impossible d'extraire les informations du dépôt Git.");
 
-        dbg!(&repo_owner);
-        dbg!(&repo_name);
-
         // Remplacez ces valeurs par les informations de votre repository et votre token d'accès personnel
         let base_branch = rebase_branch;
         let head_branch = branch.name.as_str();
         let access_token = env::var("API_KEY").unwrap();
-
-        dbg!(env::var("API_KEY").unwrap());
 
         // Construire l'URL de l'API GitHub pour créer une pull request
         let api_url = format!(
@@ -253,6 +247,10 @@ fn create_pull_request_request(
         "head": head,
     }));
 
+    dbg!(format!("Bearer {}", access_token));
+
+    dbg!(&api_url);
+
     let request_builder = client
         .post(&api_url)
         .header("Authorization", format!("Bearer {}", access_token))
@@ -274,12 +272,8 @@ fn extract_repo_owner_and_name() -> Option<(String, String)> {
         .output()
         .expect("La commande git a échoué");
 
-    dbg!(&output);
-
     // Convertit la sortie du processus en une chaîne de caractères
     let output_str = str::from_utf8(&output.stdout).ok()?;
-
-    dbg!(output_str);
 
     // Sépare l'URL en parties en utilisant le séparateur "\t" (tabulation)
     let parts: Vec<&str> = output_str.split('\t').collect();
@@ -296,11 +290,7 @@ fn extract_repo_owner_and_name() -> Option<(String, String)> {
 fn extract_owner_and_name_from_url(url: String) -> Option<(String, String)> {
     let cleaned_url = &url[19..];
 
-    dbg!(cleaned_url);
-
     let parts: Vec<&str> = cleaned_url.split('/').collect();
-
-    dbg!(&parts);
 
     // Si l'URL est dans le format attendu, retourne le propriétaire et le nom du dépôt
     if parts.len() == 2 {
