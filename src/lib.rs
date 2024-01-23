@@ -135,6 +135,8 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
             Err(_) => false,
         };
 
+        // zigounette
+
         if branch_exists {
             let mut git_pull = Command::new("git");
             git_pull.arg("pull");

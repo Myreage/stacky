@@ -14,6 +14,8 @@ Learn more about stacking here: https://stacking.dev/
 
 Short example of how you can use this tool to develop a feature you wish to split in 3 stacked pull requests.
 
+## Stacking branches
+
 Create and checkout to a new stack
 ```bash
 stacky stack --create MySuperFeature 
@@ -45,6 +47,17 @@ You can inspect your current stack with
 stacky stack
 ```
 
+This will print something like
+```
+Currently on stack MySuperFeature
+
+DBMigration
+      └──BackendAPI
+              └──Frontend
+```
+
+## Syncing with remote
+
 When you are ready to open Pull Requests for your stack, run
 ```bash
 stacky sync
@@ -54,4 +67,10 @@ This will rebase your branches into each other, push the branches, and open Pull
 If your branches are already pushed on remote, they will be pulled before rebase.
 If you have any conflicts, solve them and run this command again.
 
+## Making changes
 
+Your Pull Requests have been reviewed, and someone requested changes to your BackendAPI branch.
+Make these changes on the BackendAPI branch, commit them, and run
+```bash
+stacky stack
+```
