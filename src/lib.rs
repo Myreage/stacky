@@ -195,6 +195,9 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         let (repo_owner, repo_name) = extract_repo_owner_and_name()
             .expect("Impossible d'extraire les informations du dépôt Git.");
 
+        dbg!(&repo_owner);
+        dbg!(&repo_name);
+
         // Remplacez ces valeurs par les informations de votre repository et votre token d'accès personnel
         let base_branch = rebase_branch;
         let head_branch = branch.name.as_str();
