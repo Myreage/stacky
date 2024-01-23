@@ -248,6 +248,7 @@ fn create_pull_request_request(
 
     let request_builder = client
         .post(&api_url)
+        .header("Accept", "application/vnd.github.text+json")
         .header("X-GitHub-Api-Version", "2022-11-28")
         .header("Authorization", format!("Bearer {}", access_token))
         .header("User-Agent", "stacky")
