@@ -280,32 +280,20 @@ fn extract_repo_owner_and_name() -> Option<(String, String)> {
 }
 
 fn extract_owner_and_name_from_url(url: String) -> Option<(String, String)> {
-    // Supprime le préfixe "git@" si présent
-    let cleaned_url = if url.starts_with("git@") {
-        &url[4..]
-    } else {
-        &url
-    };
+    let cleaned_url = &url[19..];
 
     dbg!(cleaned_url);
 
-    // Supprime le suffixe ".git" si présent
-    let cleaned_url = if cleaned_url.ends_with(".git") {
-        &cleaned_url[..cleaned_url.len() - 4]
-    } else {
-        cleaned_url
-    };
-
-    dbg!(cleaned_url);
-
-    // Divise l'URL en parties en utilisant le séparateur ":"
-    let parts: Vec<&str> = cleaned_url.split(':').collect();
+    let parts: Vec<&str> = cleaned_url.split('/').collect();
 
     dbg!(&parts);
 
     // Si l'URL est dans le format attendu, retourne le propriétaire et le nom du dépôt
     if parts.len() == 2 {
-        Some((parts[0].to_string(), parts[1].to_string()))
+        Some((
+            parts[0].to_string(),
+            parts[1].trim_end_matches(".git").to_string(),
+        ))
     } else {
         None
     }
