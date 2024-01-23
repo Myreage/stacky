@@ -1,4 +1,5 @@
 use std::{
+    collections::HashMap,
     env,
     io::{self, Write},
     process::Command,
@@ -6,7 +7,6 @@ use std::{
 };
 
 use reqwest::blocking::{Client, RequestBuilder};
-use serde_json::json;
 
 mod handle_branch_command;
 mod handle_stack_command;
@@ -240,26 +240,22 @@ fn create_pull_request_request(
     // Construire la requête HTTP POST pour créer une pull request
     let client = Client::new();
 
-    dbg!(&json!({
-        "title": "Titre de la pull request",
-        "body": "Description de la pull request",
-        "base": base,
-        "head": head,
-    }));
-
     dbg!(format!("Bearer {}", access_token));
 
     dbg!(&api_url);
 
+    let mut body = HashMap::new();
+    body.insert("title", "Titre de la Pull Request");
+    body.insert("body", "Description de la Pull Request");
+    body.insert("base", base);
+    body.insert("head", head);
+
+    dbg!(&body);
+
     let request_builder = client
         .post(&api_url)
         .header("Authorization", format!("Bearer {}", access_token))
-        .json(&json!({
-            "title": "Titre de la pull request",
-            "body": "Description de la pull request",
-            "base": base,
-            "head": head,
-        }));
+        .json(&body);
 
     request_builder
 }
