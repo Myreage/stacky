@@ -204,6 +204,8 @@ pub fn handle_sync_command() -> Result<(), &'static str> {
         let head_branch = branch.name.as_str();
         let access_token = env::var("API_KEY").unwrap();
 
+        dbg!(env::var("API_KEY").unwrap());
+
         // Construire l'URL de l'API GitHub pour créer une pull request
         let api_url = format!(
             "https://api.github.com/repos/{}/{}/pulls",
