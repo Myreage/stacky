@@ -1,5 +1,14 @@
 use std::env;
 
+use command_handlers::{
+    handle_branch_command::handler as handle_branch_command,
+    handle_stack_command::handler as handle_stack_command,
+    handle_sync_command::handler as handle_sync_command,
+};
+
+mod command_handlers;
+mod persistence;
+mod stacks;
 fn main() {
     let args: Vec<String> = env::args().collect();
 
@@ -12,9 +21,9 @@ fn main() {
     let options = &args[2..];
 
     let execution_result = match command.as_str() {
-        "stack" => stacky::handle_stack_command(options),
-        "branch" => stacky::handle_branch_command(options),
-        "sync" => stacky::handle_sync_command(),
+        "stack" => handle_stack_command(options),
+        "branch" => handle_branch_command(options),
+        "sync" => handle_sync_command(),
         _ => Err("Unknown command"),
     };
 
