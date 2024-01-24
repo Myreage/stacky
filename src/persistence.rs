@@ -3,7 +3,15 @@ use std::{
     io::{self, Write},
 };
 
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{de::DeserializeOwned, Deserialize, Serialize};
+
+use crate::stacks::stacks::Stack;
+
+#[derive(Debug, Serialize, Deserialize, Default)]
+pub struct FileData {
+    pub stacks: Vec<Stack>,
+    pub current_stack: String,
+}
 
 pub fn write_to_file<T: Serialize>(data: &T, file_path: &str) -> io::Result<()> {
     let file = File::create(file_path)?;

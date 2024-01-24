@@ -1,17 +1,24 @@
 use std::process::Command;
 
-use crate::{persistence, types};
+use crate::persistence::{self, FileData};
 
-pub fn extract_branch_name(options: &[String]) -> Option<&String> {
-    options.iter().find(|&o| !o.starts_with("--"))
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Branch {
+    pub name: String,
 }
 
-pub fn extract_create_option(options: &[String]) -> Option<&String> {
-    options.iter().find(|&o| o == "--create")
+impl Branch {
+    pub fn new(name: &String) -> Branch {
+        Branch {
+            name: name.to_string(),
+        }
+    }
 }
 
 pub fn create_branch(branch_name: &String) -> Result<(), &'static str> {
-    let mut file_data = match persistence::read_from_file::<types::FileData>("save.json") {
+    let mut file_data = match persistence::read_from_file::<FileData>("save.json") {
         Ok(loaded_stacks) => loaded_stacks,
         Err(_) => return Err("Error when reading file"),
     };
@@ -47,7 +54,7 @@ pub fn create_branch(branch_name: &String) -> Result<(), &'static str> {
         Err(_) => return Err("Git branch failed"),
     }
 
-    current_stack.branches.push(types::Branch::new(branch_name));
+    current_stack.branches.push(Branch::new(branch_name));
 
     match persistence::write_to_file(&file_data, "save.json") {
         Ok(_) => {

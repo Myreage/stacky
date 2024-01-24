@@ -1,7 +1,54 @@
-use crate::{persistence, types};
+use std::fmt;
+
+use serde::{Deserialize, Serialize};
+
+use crate::persistence::{self, FileData};
+
+use super::branches::Branch;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Stack {
+    pub name: String,
+    pub branches: Vec<Branch>,
+}
+
+impl Stack {
+    pub fn new(name: &String) -> Stack {
+        Stack {
+            branches: vec![],
+            name: name.to_string(),
+        }
+    }
+}
+
+impl fmt::Display for Stack {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "Currently on stack {}\n\n", self.name)?;
+
+        let mut line_size = 0;
+        for (index, branch) in self.branches.iter().enumerate() {
+            if index == 0 {
+                write!(f, "{}\n", branch.name)?;
+                line_size += branch.name.len();
+            } else {
+                let previous_element_size = self.branches.get(index - 1).unwrap().name.len();
+                let number_of_spaces = line_size - previous_element_size / 2;
+
+                for _i in 0..number_of_spaces {
+                    write!(f, " ")?;
+                }
+
+                write!(f, "└──{}\n", branch.name)?;
+                line_size = number_of_spaces + branch.name.len() + 3;
+            }
+        }
+
+        Ok(())
+    }
+}
 
 pub fn print_current_stack() -> Result<(), &'static str> {
-    let file_data = match persistence::read_from_file::<types::FileData>("save.json") {
+    let file_data = match persistence::read_from_file::<FileData>("save.json") {
         Ok(loaded_stacks) => loaded_stacks,
         Err(_) => return Err("Error when reading file"),
     };
@@ -21,7 +68,7 @@ pub fn print_current_stack() -> Result<(), &'static str> {
 }
 
 pub fn create_stack(stack_name: &String) -> Result<(), &'static str> {
-    let mut file_data = match persistence::read_from_file::<types::FileData>("save.json") {
+    let mut file_data = match persistence::read_from_file::<FileData>("save.json") {
         Ok(loaded_stacks) => loaded_stacks,
         Err(_) => return Err("Error when reading file"),
     };
@@ -30,7 +77,7 @@ pub fn create_stack(stack_name: &String) -> Result<(), &'static str> {
         return Err("Stack already exists");
     }
 
-    file_data.stacks.push(types::Stack::new(stack_name));
+    file_data.stacks.push(Stack::new(stack_name));
 
     match persistence::write_to_file(&file_data, "save.json") {
         Ok(_) => {
@@ -42,7 +89,7 @@ pub fn create_stack(stack_name: &String) -> Result<(), &'static str> {
 }
 
 pub fn checkout_stack(stack_name: &String) -> Result<(), &'static str> {
-    let mut file_data = match persistence::read_from_file::<types::FileData>("save.json") {
+    let mut file_data = match persistence::read_from_file::<FileData>("save.json") {
         Ok(loaded_stacks) => loaded_stacks,
         Err(_) => return Err("Error when reading file"),
     };
@@ -61,12 +108,4 @@ pub fn checkout_stack(stack_name: &String) -> Result<(), &'static str> {
         }
         Err(_) => Err("Failed writing to file"),
     }
-}
-
-pub fn extract_stack_name(options: &[String]) -> Option<&String> {
-    options.iter().find(|&o| !o.starts_with("--"))
-}
-
-pub fn extract_create_option(options: &[String]) -> Option<&String> {
-    options.iter().find(|&o| o == "--create")
 }
