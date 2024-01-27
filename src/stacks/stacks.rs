@@ -2,11 +2,11 @@ use std::fmt;
 
 use serde::{Deserialize, Serialize};
 
-use crate::persistence::{self, FileData};
+use crate::persistence;
 
 use super::branches::Branch;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Stack {
     pub name: String,
     pub branches: Vec<Branch>,
@@ -48,19 +48,7 @@ impl fmt::Display for Stack {
 }
 
 pub fn print_current_stack() -> Result<(), String> {
-    let file_data = match persistence::read_from_file::<FileData>("save.json") {
-        Ok(loaded_stacks) => loaded_stacks,
-        Err(_) => return Err("Error when reading file".to_string()),
-    };
-
-    let current_stack = match file_data
-        .stacks
-        .iter()
-        .find(|&s| s.name == file_data.current_stack)
-    {
-        Some(stack) => stack,
-        None => return Err("Not currently on a stack".to_string()),
-    };
+    let current_stack = persistence::read_current_stack()?;
 
     println!("{}", current_stack);
 
@@ -68,44 +56,9 @@ pub fn print_current_stack() -> Result<(), String> {
 }
 
 pub fn create_stack(stack_name: &String) -> Result<(), String> {
-    let mut file_data = match persistence::read_from_file::<FileData>("save.json") {
-        Ok(loaded_stacks) => loaded_stacks,
-        Err(_) => return Err("Error when reading file".to_string()),
-    };
-
-    if let Some(_) = file_data.stacks.iter().find(|&s| &s.name == stack_name) {
-        return Err("Stack already exists".to_string());
-    }
-
-    file_data.stacks.push(Stack::new(stack_name));
-
-    match persistence::write_to_file(&file_data, "save.json") {
-        Ok(_) => {
-            eprintln!("Created new stack {}", stack_name);
-            Ok(())
-        }
-        Err(_) => Err("Failed writing to file".to_string()),
-    }
+    persistence::save_stack(stack_name)
 }
 
 pub fn checkout_stack(stack_name: &String) -> Result<(), String> {
-    let mut file_data = match persistence::read_from_file::<FileData>("save.json") {
-        Ok(loaded_stacks) => loaded_stacks,
-        Err(_) => return Err("Error when reading file".to_string()),
-    };
-
-    match file_data.stacks.iter().find(|&s| &s.name == stack_name) {
-        Some(_) => (),
-        None => return Err("Stack not found".to_string()),
-    };
-
-    file_data.current_stack = stack_name.clone();
-
-    match persistence::write_to_file(&file_data, "save.json") {
-        Ok(_) => {
-            eprintln!("On stack {}", stack_name);
-            Ok(())
-        }
-        Err(_) => Err("Failed writing to file".to_string()),
-    }
+    persistence::save_current_stack(stack_name)
 }

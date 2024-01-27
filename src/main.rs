@@ -1,11 +1,5 @@
 use std::env;
 
-use command_handlers::{
-    handle_branch_command::handler as handle_branch_command,
-    handle_stack_command::handler as handle_stack_command,
-    handle_sync_command::handler as handle_sync_command,
-};
-
 mod command_handlers;
 mod git;
 mod persistence;
@@ -22,9 +16,9 @@ fn main() {
     let options = &args[2..];
 
     let execution_result = match command.as_str() {
-        "stack" => handle_stack_command(options),
-        "branch" => handle_branch_command(options),
-        "sync" => handle_sync_command(),
+        "stack" => command_handlers::handle_stack_command::handler(options),
+        "branch" => command_handlers::handle_branch_command::handler(options),
+        "sync" => command_handlers::handle_sync_command::handler(),
         _ => Err("Unknown command".to_string()),
     };
 

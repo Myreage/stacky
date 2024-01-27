@@ -1,4 +1,4 @@
-use crate::stacks::stacks::{checkout_stack, create_stack, print_current_stack};
+use crate::stacks::stacks;
 
 fn extract_stack_name(options: &[String]) -> Option<&String> {
     options.iter().find(|&o| !o.starts_with("--"))
@@ -12,7 +12,7 @@ pub fn handler(options: &[String]) -> Result<(), String> {
     let stack_name_result = extract_stack_name(options);
 
     if stack_name_result.is_none() {
-        match print_current_stack() {
+        match stacks::print_current_stack() {
             Ok(_) => return Ok(()),
             Err(e) => return Err(e),
         }
@@ -26,13 +26,13 @@ pub fn handler(options: &[String]) -> Result<(), String> {
     };
 
     if create_option {
-        match create_stack(stack_name) {
+        match stacks::create_stack(stack_name) {
             Ok(_) => {}
             Err(e) => return Err(e),
         }
     }
 
-    match checkout_stack(stack_name) {
+    match stacks::checkout_stack(stack_name) {
         Ok(_) => Ok(()),
         Err(e) => Err(e),
     }

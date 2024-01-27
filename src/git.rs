@@ -46,6 +46,24 @@ pub fn checkout_branch(branch_name: &String) -> Result<(), String> {
     }
 }
 
+pub fn create_branch(branch_name: &String) -> Result<(), String> {
+    let mut git_branch = Command::new("git");
+    git_branch.arg("branch").arg(branch_name);
+
+    match git_branch.output() {
+        Ok(result) => {
+            if !result.status.success() {
+                let stdout = from_utf8(&result.stdout).unwrap();
+                let stderr = from_utf8(&result.stderr).unwrap();
+                let formatted_error = format!("{}\n{}\nGit branch failed", stdout, stderr);
+                return Err(formatted_error);
+            }
+            Ok(())
+        }
+        Err(_) => return Err("Git branch failed".to_string()),
+    }
+}
+
 pub fn pull_current_branch() -> Result<(), String> {
     let mut git_pull_main = Command::new("git");
     git_pull_main.arg("pull");

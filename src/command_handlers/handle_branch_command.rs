@@ -1,4 +1,4 @@
-use crate::{git::checkout_branch, stacks::branches::create_branch};
+use crate::{git, stacks::branches};
 
 fn extract_branch_name(options: &[String]) -> Option<&String> {
     options.iter().find(|&o| !o.starts_with("--"))
@@ -19,13 +19,13 @@ pub fn handler(options: &[String]) -> Result<(), String> {
     };
 
     if create_option {
-        match create_branch(&branch_name) {
+        match branches::create_branch(&branch_name) {
             Ok(_) => {}
             Err(e) => return Err(e),
         }
     }
 
-    match checkout_branch(branch_name) {
+    match git::checkout_branch(branch_name) {
         Ok(_) => Ok(()),
         Err(e) => Err(e),
     }
