@@ -4,7 +4,7 @@ use crate::persistence::{self, FileData};
 
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Branch {
     pub name: String,
 }
@@ -17,10 +17,10 @@ impl Branch {
     }
 }
 
-pub fn create_branch(branch_name: &String) -> Result<(), &'static str> {
+pub fn create_branch(branch_name: &String) -> Result<(), String> {
     let mut file_data = match persistence::read_from_file::<FileData>("save.json") {
         Ok(loaded_stacks) => loaded_stacks,
-        Err(_) => return Err("Error when reading file"),
+        Err(_) => return Err("Error when reading file".to_string()),
     };
 
     let current_stack_position = match file_data
@@ -29,7 +29,7 @@ pub fn create_branch(branch_name: &String) -> Result<(), &'static str> {
         .position(|s| s.name == file_data.current_stack)
     {
         Some(position) => position,
-        None => return Err("Not currently on a stack"),
+        None => return Err("Not currently on a stack".to_string()),
     };
 
     let current_stack = &mut file_data.stacks[current_stack_position];
@@ -39,7 +39,7 @@ pub fn create_branch(branch_name: &String) -> Result<(), &'static str> {
         .iter()
         .find(|&s| &s.name == branch_name)
     {
-        return Err("Branch already exists");
+        return Err("Branch already exists".to_string());
     }
 
     let mut git_branch = Command::new("git");
@@ -48,10 +48,10 @@ pub fn create_branch(branch_name: &String) -> Result<(), &'static str> {
     match git_branch.output() {
         Ok(result) => {
             if !result.status.success() {
-                return Err("Git branch failed");
+                return Err("Git branch failed".to_string());
             }
         }
-        Err(_) => return Err("Git branch failed"),
+        Err(_) => return Err("Git branch failed".to_string()),
     }
 
     current_stack.branches.push(Branch::new(branch_name));
@@ -61,22 +61,6 @@ pub fn create_branch(branch_name: &String) -> Result<(), &'static str> {
             eprintln!("Created new branch {}", branch_name);
             Ok(())
         }
-        Err(_) => Err("Failed writing to file"),
+        Err(_) => Err("Failed writing to file".to_string()),
     }
-}
-
-pub fn checkout_branch(branch_name: &String) -> Result<(), &'static str> {
-    let mut git_checkout = Command::new("git");
-    git_checkout.arg("checkout").arg(branch_name);
-
-    match git_checkout.output() {
-        Ok(result) => {
-            if !result.status.success() {
-                return Err("Git checkout failed");
-            }
-        }
-        Err(_) => return Err("Git checkout failed"),
-    };
-
-    Ok(())
 }

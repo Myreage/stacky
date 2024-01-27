@@ -5,7 +5,7 @@ use std::{
 
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 
-use crate::stacks::stacks::Stack;
+use crate::stacks::{branches::Branch, stacks::Stack};
 
 #[derive(Debug, Serialize, Deserialize, Default)]
 pub struct FileData {
@@ -32,4 +32,22 @@ pub fn read_from_file<T: DeserializeOwned + Default + Serialize>(file_path: &str
 
     let reader = io::BufReader::new(file);
     Ok(serde_json::from_reader(reader)?)
+}
+
+pub fn read_current_stack_branches() -> Result<Vec<Branch>, &'static str> {
+    let file_data = match read_from_file::<FileData>("save.json") {
+        Ok(loaded_stacks) => loaded_stacks,
+        Err(_) => return Err("Error when reading file"),
+    };
+
+    let current_stack = &file_data.current_stack;
+
+    let branches = &file_data
+        .stacks
+        .iter()
+        .find(|&s| &s.name == current_stack)
+        .unwrap()
+        .branches;
+
+    Ok(branches.clone())
 }

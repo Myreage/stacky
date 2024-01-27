@@ -1,4 +1,4 @@
-use crate::stacks::branches::{checkout_branch, create_branch};
+use crate::{git::checkout_branch, stacks::branches::create_branch};
 
 fn extract_branch_name(options: &[String]) -> Option<&String> {
     options.iter().find(|&o| !o.starts_with("--"))
@@ -8,10 +8,10 @@ fn extract_create_option(options: &[String]) -> Option<&String> {
     options.iter().find(|&o| o == "--create")
 }
 
-pub fn handler(options: &[String]) -> Result<(), &'static str> {
+pub fn handler(options: &[String]) -> Result<(), String> {
     let branch_name = match extract_branch_name(options) {
         Some(name) => name,
-        None => return Err("Missing branch name"),
+        None => return Err("Missing branch name".to_string()),
     };
     let create_option = match extract_create_option(options) {
         Some(_) => true,

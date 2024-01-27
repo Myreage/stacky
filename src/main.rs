@@ -7,6 +7,7 @@ use command_handlers::{
 };
 
 mod command_handlers;
+mod git;
 mod persistence;
 mod stacks;
 fn main() {
@@ -24,7 +25,7 @@ fn main() {
         "stack" => handle_stack_command(options),
         "branch" => handle_branch_command(options),
         "sync" => handle_sync_command(),
-        _ => Err("Unknown command"),
+        _ => Err("Unknown command".to_string()),
     };
 
     match execution_result {

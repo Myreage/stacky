@@ -8,7 +8,7 @@ fn extract_create_option(options: &[String]) -> Option<&String> {
     options.iter().find(|&o| o == "--create")
 }
 
-pub fn handler(options: &[String]) -> Result<(), &'static str> {
+pub fn handler(options: &[String]) -> Result<(), String> {
     let stack_name_result = extract_stack_name(options);
 
     if stack_name_result.is_none() {
