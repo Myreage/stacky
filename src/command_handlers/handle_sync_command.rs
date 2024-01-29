@@ -24,7 +24,10 @@ pub fn handler() -> Result<(), String> {
 
         git::force_push_branch(&branch.name)?;
 
-        git::open_pull_request(&rebase_branch.to_string(), &branch.name)
+        match git::find_pull_request(&rebase_branch.to_string(), &branch.name)? {
+            Some(_) => {}
+            None => git::open_pull_request(&rebase_branch.to_string(), &branch.name),
+        }
     }
 
     Ok(())

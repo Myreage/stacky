@@ -1,18 +1,20 @@
-use std::{collections::HashMap, env, process::Command, str::from_utf8};
+use std::{collections::HashMap, env, io, process::Command, str::from_utf8};
 
 use reqwest::blocking::{Client, RequestBuilder};
+use serde::Deserialize;
 
 pub fn create_pull_request_request(
     api_url: String,
     access_token: &str,
     base: &str,
     head: &str,
+    title: &str,
 ) -> RequestBuilder {
     // Construire la requête HTTP POST pour créer une pull request
     let client = Client::new();
 
     let mut body = HashMap::new();
-    body.insert("title", "Titre de la Pull Request");
+    body.insert("title", title);
     body.insert("body", "Description de la Pull Request");
     body.insert("base", base);
     body.insert("head", head);
@@ -93,6 +95,37 @@ pub fn check_branch_exists(branch_name: &String) -> bool {
     }
 }
 
+pub fn find_open_pull_request_request(
+    access_token: &str,
+    base: &str,
+    head: &str,
+    repo_owner: &str,
+    repo_name: &str,
+) -> RequestBuilder {
+    let client = Client::new();
+
+    let api_url = format!(
+        "https://api.github.com/repos/{}/{}/pulls",
+        repo_owner, repo_name
+    );
+
+    let head_filter = format!("{}:{}", repo_owner, head);
+
+    let request_builder = client
+        .get(&api_url)
+        .query(&[
+            ("state", "open"),
+            ("head", head_filter.as_str()),
+            ("base", base),
+        ])
+        .header("Accept", "application/vnd.github+json")
+        .header("X-GitHub-Api-Version", "2022-11-28")
+        .header("Authorization", format!("Bearer {}", access_token))
+        .header("User-Agent", "stacky");
+
+    request_builder
+}
+
 pub fn rebase_current_branch(target_branch_name: &String) -> Result<(), String> {
     let mut git_rebase = Command::new("git");
     git_rebase.arg("rebase").arg(target_branch_name);
@@ -134,9 +167,62 @@ pub fn force_push_branch(origin_branch_name: &String) -> Result<(), String> {
     }
 }
 
+#[derive(Deserialize, Clone)]
+pub struct FindPullRequestResponse {}
+
+pub fn find_pull_request(
+    base_branch_name: &String,
+    head_branch_name: &String,
+) -> Result<Option<FindPullRequestResponse>, String> {
+    let (repo_owner, repo_name) = extract_repo_owner_and_name()
+        .expect("Impossible d'extraire les informations du dépôt Git.");
+
+    let access_token = env::var("API_KEY").unwrap();
+
+    let request_builder = find_open_pull_request_request(
+        &access_token,
+        base_branch_name,
+        head_branch_name,
+        &repo_owner,
+        &repo_name,
+    );
+
+    match request_builder.send() {
+        Ok(response) => {
+            if response.status().is_success() {
+                let content: Vec<FindPullRequestResponse> = response.json().unwrap();
+                let pull_request = content.get(0);
+
+                Ok(pull_request.cloned())
+            } else {
+                Err(format!(
+                    "Erreur lors de la récupération des pull requests: {:?}",
+                    response.text()
+                ))
+            }
+        }
+        Err(e) => Err(format!(
+            "Erreur lors de la récupération des pull requests: {:?}",
+            e
+        )),
+    }
+}
+
 pub fn open_pull_request(base_branch_name: &String, head_branch_name: &String) {
     let (repo_owner, repo_name) = extract_repo_owner_and_name()
         .expect("Impossible d'extraire les informations du dépôt Git.");
+
+    let mut pr_title = String::new();
+
+    println!(
+        "Opening a new Pull Request for {} <- {}",
+        base_branch_name, head_branch_name
+    );
+    println!("Enter a Pull Request title");
+
+    io::stdin()
+        .read_line(&mut pr_title)
+        .expect("Erreur lors de la lecture de l'entrée");
 
     let access_token = env::var("API_KEY").unwrap();
 
@@ -146,8 +232,13 @@ pub fn open_pull_request(base_branch_name: &String, head_branch_name: &String) {
     );
 
     // Construire la requête HTTP
-    let request_builder =
-        create_pull_request_request(api_url, &access_token, &base_branch_name, &head_branch_name);
+    let request_builder = create_pull_request_request(
+        api_url,
+        &access_token,
+        &base_branch_name,
+        &head_branch_name,
+        &pr_title,
+    );
 
     // Exécuter la requête
     match request_builder.send() {
@@ -168,41 +259,24 @@ pub fn open_pull_request(base_branch_name: &String, head_branch_name: &String) {
 }
 
 fn extract_repo_owner_and_name() -> Option<(String, String)> {
-    // Exécute la commande `git remote -v` et capture la sortie
     let output = Command::new("git")
         .arg("remote")
-        .arg("-v")
+        .arg("get-url")
+        .arg("origin")
         .output()
         .expect("La commande git a échoué");
 
-    // Convertit la sortie du processus en une chaîne de caractères
     let output_str = std::str::from_utf8(&output.stdout).ok()?;
 
-    // Sépare l'URL en parties en utilisant le séparateur "\t" (tabulation)
-    let parts: Vec<&str> = output_str.split('\t').collect();
+    let stripped_output = output_str.strip_prefix("https://github.com/")?;
 
-    // Si l'URL est dans le format attendu, retourne le propriétaire et le nom du dépôt
+    let parts: Vec<&str> = stripped_output.split("/").collect();
+
     if parts.len() >= 2 {
-        let url = parts[1].trim();
-        extract_owner_and_name_from_url(url.to_string())
-    } else {
-        None
-    }
-}
+        let owner_name = parts[0];
+        let repo_name = parts[1].trim_end_matches(".git\n");
 
-fn extract_owner_and_name_from_url(url: String) -> Option<(String, String)> {
-    let cleaned_url = &url[19..];
-
-    let parts: Vec<&str> = cleaned_url.split('/').collect();
-
-    // Si l'URL est dans le format attendu, retourne le propriétaire et le nom du dépôt
-    if parts.len() == 2 {
-        Some((
-            parts[0].to_string(),
-            parts[1]
-                .trim_end_matches(".git (fetch)\norigin")
-                .to_string(),
-        ))
+        Some((owner_name.to_string(), repo_name.to_string()))
     } else {
         None
     }

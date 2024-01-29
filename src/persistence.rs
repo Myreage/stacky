@@ -139,7 +139,6 @@ pub fn save_current_stack(stack_name: &String) -> Result<(), String> {
 
 pub fn read_current_stack() -> Result<Stack, String> {
     let save_file_path = get_save_file_path()?;
-    dbg!(&save_file_path);
     let file_data = match read_from_file::<FileData>(&save_file_path) {
         Ok(loaded_stacks) => loaded_stacks,
         Err(e) => return Err(e.to_string()),
